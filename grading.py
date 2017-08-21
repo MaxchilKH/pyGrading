@@ -1,8 +1,11 @@
+import glob
+
 import numpy as np
 from scipy import misc, ndimage
 from skimage import filters
 
 
+# noinspection PyPep8Naming
 def flatten(image):
     """
     Flatten rgb image into 2-D grayscale image using luminosity method
@@ -18,16 +21,19 @@ def flatten(image):
     flat = 0.2989 * R + 0.5870 * G + 0.1140 * B
     return flat.T
 
+
+# noinspection PyUnusedLocal
 def resize_proportions(img, size, dimension='width'):
     """
     Resize image retaining it's proportions
 
+    :param dimension:
     :param img:     image as numpy array
     :param size:    image dimension
-    :param orient:  dimension of size, default: width
+    :param dimension: dimension of size, default: width
     :return:        processed image
     """
-    proportion = 1 - np.round((img.shape[1] - size)/img.shape[1], decimals=2)
+    proportion = 1 - np.round((img.shape[1] - size) / img.shape[1], decimals=2)
 
     return misc.imresize(img, (int(img.shape[0] * proportion), size))
 
@@ -48,17 +54,19 @@ def extract_grade(image_name):
     image = ndimage.gaussian_filter(image, sigma=9)
 
     """
-    Apply otsu tresholding
+    Apply otsu thresholding
     """
     labels = filters.threshold_otsu(image)
     mask = image < labels
     image[mask] = 0
 
     """
-    Make image completly binary and fill holes created in the process
+    Make image completely binary and fill holes created in the process
     """
     image[image != 0] = 1
     image = ndimage.binary_fill_holes(image)
+
+
 
     """
     Label objects in the image
@@ -73,6 +81,7 @@ def extract_grade(image_name):
     parts = parts.argsort()
 
     return org_image[labels[parts[-1]]], org_image[labels[parts[-2]]]
+
 
 def process_scan(image_name):
     """
@@ -89,11 +98,14 @@ def process_scan(image_name):
     return resize_proportions(strip, width), resize_proportions(note, width)
 
 
-def glue_togather(obverse_image, reverse_image, padding_height=5, margin_width=5):
+def stitch_together(obverse_image, reverse_image, padding_height=5, margin_width=5):
     """
+
 
     :param obverse_image: path to obverse
     :param reverse_image: path to reverse
+    :param padding_height: height of horizontal padding
+    :param margin_width: width of vertical margin
     :return:              result image
     """
     strip_up, note_up = process_scan(obverse_image)
@@ -109,7 +121,7 @@ def glue_togather(obverse_image, reverse_image, padding_height=5, margin_width=5
         padding_horizontal,
         strip_down,
         padding_horizontal
-        ))
+    ))
 
     """
     add vertical margin
@@ -120,13 +132,12 @@ def glue_togather(obverse_image, reverse_image, padding_height=5, margin_width=5
     return result
 
 
-images_path = "images/"
+if __name__ == "__main__":
+    files = glob.glob('images/*[!_r].bmp')
 
-name = images_path + '175_423.bmp'
-
-reverse_name = name.split('.')
-reverse_name = reverse_name[0] + '_r.' + reverse_name[1]
-
-
-result = glue_togather(name, reverse_name)
-misc.imsave('result.jpg', result)
+    for name in files:
+        reverse_name = name.split('.')
+        reverse_name = reverse_name[0] + '_r.' + reverse_name[1]
+        result = stitch_together(name, reverse_name)
+        name = name.split('/')[1].split('.')
+        misc.imsave('results/' + name[0] + '_result' + '.jpg' , result)
