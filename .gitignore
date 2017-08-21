@@ -1,0 +1,7 @@
+/.idea/*
+/images/*
+/results/*
+/*.jpg
+
+!*.md
+!*.md
