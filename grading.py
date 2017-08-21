@@ -74,7 +74,13 @@ def extract_grade(image_name):
 
     return org_image[labels[parts[-1]]], org_image[labels[parts[-2]]]
 
-def process_grading(image_name):
+def process_scan(image_name):
+    """
+    image processing, resize and aesthetics
+
+    :param image_name: name of image to process
+    :return:           processed strip, processed banknote
+    """
     width = 890
 
     strip, note = extract_grade(image_name)
@@ -82,29 +88,45 @@ def process_grading(image_name):
 
     return resize_proportions(strip, width), resize_proportions(note, width)
 
-def glue_togather(image_name):
-    strip_up, note_up = process_grading(image_name)
 
-    padding_height = 10
-    padding = np.zeros((padding_height, strip_up.shape[1], 3))
-    up = np.concatenate((strip_up, padding, note_up))
+def glue_togather(obverse_image, reverse_image, padding_height=5, margin_width=5):
+    """
 
-    reverse_name = image_name.split('.')
-    reverse_name = reverse_name[0] + '_r.' + reverse_name[1]
+    :param obverse_image: path to obverse
+    :param reverse_image: path to reverse
+    :return:              result image
+    """
+    strip_up, note_up = process_scan(obverse_image)
+    strip_down, note_down = process_scan(reverse_image)
 
-    strip_down, note_down = process_grading(reverse_name)
+    padding_horizontal = np.zeros((padding_height, strip_up.shape[1], 3))
 
-    padding = np.zeros((padding_height, strip_down.shape[1], 3))
-    down = np.concatenate((note_down, padding, strip_down))
+    result = np.concatenate((
+        padding_horizontal,
+        strip_up,
+        note_up,
+        note_down,
+        padding_horizontal,
+        strip_down,
+        padding_horizontal
+        ))
 
-    result = np.concatenate((up, padding, down))
+    """
+    add vertical margin
+    """
+    margin_vertical = np.zeros((result.shape[0], margin_width, 3))
+    result = np.concatenate((margin_vertical, result, margin_vertical), axis=1)
 
     return result
 
 
-
-
 images_path = "images/"
 
-result = glue_togather(images_path + '175_423.bmp')
+name = images_path + '175_423.bmp'
+
+reverse_name = name.split('.')
+reverse_name = reverse_name[0] + '_r.' + reverse_name[1]
+
+
+result = glue_togather(name, reverse_name)
 misc.imsave('result.jpg', result)
