@@ -166,4 +166,4 @@ if __name__ == "__main__":
         reverse_name = reverse_name[0] + '_r.' + reverse_name[1]
         result = stitch_together(name, reverse_name)
         name = name.split('/')[1].split('.')
-        misc.imsave('results/' + name[0] + '_result' + '.jpg' , result)
+        misc.imsave('results/' + name[0] + '.jpg' , result)
