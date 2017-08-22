@@ -75,7 +75,7 @@ def extract_grade(image_name):
     """
     org_image = misc.imread(image_name, mode='RGB')
     image = flatten(org_image)
-    image = ndimage.gaussian_filter(image, sigma=35)
+    image = ndimage.gaussian_filter(image, sigma=30)
 
     """
     Apply otsu thresholding
@@ -117,7 +117,7 @@ def process_scan(image_name):
     strip, note = extract_grade(image_name)
     strip, note = np.rot90(strip, k=-1), np.rot90(note, k=-1)
 
-    strip, note = adjust_contrast(strip, 50), adjust_contrast(note, 50)
+    strip, note = adjust_contrast(strip, 64), adjust_contrast(note, 64)
 
     return resize_proportions(strip, width), resize_proportions(note, width)
 
@@ -138,6 +138,7 @@ def stitch_together(obverse_image, reverse_image, padding_height=6, margin_width
     padding_horizontal = np.zeros((padding_height, strip_up.shape[1], 3))
 
     result = np.concatenate((
+        padding_horizontal,
         strip_up,
         padding_horizontal,
         note_up,
@@ -145,6 +146,7 @@ def stitch_together(obverse_image, reverse_image, padding_height=6, margin_width
         note_down,
         padding_horizontal,
         strip_down,
+        padding_horizontal,
     ))
 
     """
