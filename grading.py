@@ -5,7 +5,6 @@ from scipy import misc, ndimage
 from skimage import filters
 
 
-# noinspection PyPep8Naming
 def flatten(image):
     """
     Flatten rgb image into 2-D grayscale image using luminosity method
@@ -21,8 +20,33 @@ def flatten(image):
     flat = 0.2989 * R + 0.5870 * G + 0.1140 * B
     return flat.T
 
+def adjust_contrast(image, C):
+    """
+    Adjust RGB image's contrast to desired level
 
-# noinspection PyUnusedLocal
+    :param image: image to process
+    :param C: contrast level
+    :return: adjusted image
+    """
+    F = (259 * (C + 255)) / (255 * (259 - C))
+
+    def contrast(Colour):
+        return F * (Colour - 128) + 128
+
+    def trunctuate(colour):
+        colour[colour < 0] = 0
+        colour[colour > 255] = 255
+
+        return colour
+
+    R, G, B = image.T.astype(np.float16)
+
+    image.T[0], image.T[1], image.T[2] = \
+        trunctuate(contrast(R)), trunctuate(contrast(G)), trunctuate(contrast(B))
+
+    return image
+
+
 def resize_proportions(img, size, dimension='width'):
     """
     Resize image retaining it's proportions
@@ -51,7 +75,7 @@ def extract_grade(image_name):
     """
     org_image = misc.imread(image_name, mode='RGB')
     image = flatten(org_image)
-    image = ndimage.gaussian_filter(image, sigma=9)
+    image = ndimage.gaussian_filter(image, sigma=35)
 
     """
     Apply otsu thresholding
@@ -65,8 +89,6 @@ def extract_grade(image_name):
     """
     image[image != 0] = 1
     image = ndimage.binary_fill_holes(image)
-
-
 
     """
     Label objects in the image
@@ -95,12 +117,14 @@ def process_scan(image_name):
     strip, note = extract_grade(image_name)
     strip, note = np.rot90(strip, k=-1), np.rot90(note, k=-1)
 
+    strip, note = adjust_contrast(strip, 50), adjust_contrast(note, 50)
+
     return resize_proportions(strip, width), resize_proportions(note, width)
 
 
-def stitch_together(obverse_image, reverse_image, padding_height=5, margin_width=5):
+def stitch_together(obverse_image, reverse_image, padding_height=6, margin_width=5):
     """
-
+    stitch parts int final image
 
     :param obverse_image: path to obverse
     :param reverse_image: path to reverse
@@ -114,13 +138,13 @@ def stitch_together(obverse_image, reverse_image, padding_height=5, margin_width
     padding_horizontal = np.zeros((padding_height, strip_up.shape[1], 3))
 
     result = np.concatenate((
-        padding_horizontal,
         strip_up,
+        padding_horizontal,
         note_up,
+        padding_horizontal,
         note_down,
         padding_horizontal,
         strip_down,
-        padding_horizontal
     ))
 
     """
