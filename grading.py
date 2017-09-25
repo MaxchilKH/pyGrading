@@ -160,7 +160,7 @@ def stitch_together(obverse_image, reverse_image, padding_height=6, margin_width
 
 if __name__ == "__main__":
     files = glob.glob('images/*[!r].bmp')
-
+    print(files)
     for name in files:
         print(name)
         reverse_name = name.split('.')
