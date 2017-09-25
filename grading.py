@@ -162,6 +162,7 @@ if __name__ == "__main__":
     files = glob.glob('images/*[!_r].bmp')
 
     for name in files:
+        print(name)
         reverse_name = name.split('.')
         reverse_name = reverse_name[0] + '_r.' + reverse_name[1]
         result = stitch_together(name, reverse_name)
