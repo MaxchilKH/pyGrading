@@ -159,12 +159,12 @@ def stitch_together(obverse_image, reverse_image, padding_height=6, margin_width
 
 
 if __name__ == "__main__":
-    files = glob.glob('images/*[!r].bmp')
+    files = glob.glob('images\*[!r].bmp')
     print(files)
     for name in files:
         print(name)
         reverse_name = name.split('.')
         reverse_name = reverse_name[0] + 'r.' + reverse_name[1]
         result = stitch_together(name, reverse_name)
-        name = name.split('/')[1].split('.')
-        misc.imsave('results/' + name[0] + '.jpg' , result)
+        name = name.split('\')[1].split('.')
+        misc.imsave('results\' + name[0] + '.jpg' , result)
